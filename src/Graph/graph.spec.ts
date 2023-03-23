@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-
-import { IVertex, IEdge, IGraph, Graph } from './index';
+import { IVertex, IEdge, IGraph, Graph } from '../index';
 
 describe('Graph', () => {
 
@@ -40,6 +39,16 @@ describe('Graph', () => {
         const graph2: IGraph = new Graph([vertex1, vertex2], [edge]);
         expect(graph2.getVertices()).toEqual([vertex1, vertex2]);
         expect(graph2.getEdges()).toEqual([edge]);
+    });
+
+    it('Should be able to remove a vertex', () => {
+        graph.removeVertex('1');
+        expect(graph.getVertices()).toEqual([vertex2]);
+    });
+
+    it('Should be able to remove an edge', () => {
+        graph.removeEdge('1');
+        expect(graph.getEdges()).toEqual([]);
     });
 });
 

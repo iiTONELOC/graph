@@ -1,5 +1,6 @@
 import { Graph, graphUtils } from './lib/index.js';
 
+
 // Step 2. create an array of objects for the vertices
 const vertData = [
     { id: '1', label: 'A' },
@@ -20,10 +21,10 @@ const edgeData = [
 ];
 
 // Step 4. create the graph utility object
-const graph = graphUtils(new Graph(vertData, edgeData));
+const GraphUtils = graphUtils(new Graph(vertData, edgeData));
 
 // Step 5. Do stuff!
 // get the total degree
-const totalDegree = graph.graphUtils.getTotalDegree();
+const totalDegree = GraphUtils.getTotalDegree();
 
 console.log(totalDegree); // 12
