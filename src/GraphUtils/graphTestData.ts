@@ -95,6 +95,33 @@ const hypercubeEdges: IEdge[] = [
     { id: '12', label: 'GF', source: hypercubeVerts[6], target: hypercubeVerts[5] }
 ];
 
+// create vertices and edges for a graph with a Eulerian path
+const eulerTrailVerts: IVertex[] = [
+    { id: '1', label: 'A' },
+    { id: '2', label: 'B' },
+    { id: '3', label: 'C' },
+    { id: '4', label: 'D' },
+    { id: '5', label: 'E' },
+    { id: '6', label: 'F' }
+];
+
+const eulerTrailEdges: IEdge[] = [
+    { id: '1', label: 'AB', source: eulerTrailVerts[0], target: eulerTrailVerts[1] },
+    { id: '2', label: 'AC', source: eulerTrailVerts[0], target: eulerTrailVerts[2] },
+    { id: '3', label: 'AD', source: eulerTrailVerts[0], target: eulerTrailVerts[3] },
+    { id: '4', label: 'AE', source: eulerTrailVerts[0], target: eulerTrailVerts[4] },
+    { id: '5', label: 'BC', source: eulerTrailVerts[1], target: eulerTrailVerts[2] },
+    { id: '6', label: 'BF', source: eulerTrailVerts[1], target: eulerTrailVerts[5] },
+    { id: '7', label: 'CD', source: eulerTrailVerts[2], target: eulerTrailVerts[3] },
+    { id: '8', label: 'CF', source: eulerTrailVerts[2], target: eulerTrailVerts[5] },
+    { id: '9', label: 'DE', source: eulerTrailVerts[3], target: eulerTrailVerts[4] }
+];
+
+const eulerCircuitEdges: IEdge[] = [
+    ...eulerTrailEdges,
+    { id: '10', label: 'DB', source: eulerTrailVerts[3], target: eulerTrailVerts[1] }
+];
+
 export const vertData: IVertex[] = [
     { id: '1', label: 'A' },
     { id: '2', label: 'B' },
@@ -117,6 +144,8 @@ export const bipartGraphUtils = graphUtils(new Graph(bipartVerts, bipartEdges));
 export const cyclicGraphUtils = graphUtils(new Graph(cyclicVerts, cyclicEdges));
 export const completeGraphUtils = graphUtils(new Graph(completeVerts, completeEdges));
 export const hypercubeGraphUtils = graphUtils(new Graph(hypercubeVerts, hypercubeEdges));
+export const eulerTrailGraphUtils = graphUtils(new Graph(eulerTrailVerts, eulerTrailEdges));
+export const eulerCircuitGraphUtils = graphUtils(new Graph(eulerTrailVerts, eulerCircuitEdges));
 
 const defaultExports = {
     GraphUtils,
@@ -124,6 +153,8 @@ const defaultExports = {
     cyclicGraphUtils,
     completeGraphUtils,
     hypercubeGraphUtils,
+    eulerTrailGraphUtils,
+    eulerCircuitGraphUtils,
     vertData,
     edgeData
 };

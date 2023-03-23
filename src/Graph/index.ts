@@ -32,6 +32,8 @@ interface IGraph {
     getEdge(id: string): IEdge | undefined;
     getVertices(): IVertex[];
     getEdges(): IEdge[];
+    removeEdge(id: string): void;
+    removeVertex(id: string): void;
 }
 
 
@@ -69,6 +71,15 @@ class Graph implements IGraph {
         return this.edges;
     }
 
+    removeEdge(id: string): void {
+        const updatedEdges = this.edges.filter((e: IEdge) => e.id !== id);
+        this.edges = updatedEdges;
+    }
+
+    removeVertex(id: string): void {
+        this.vertices = this.vertices.filter((v: IVertex) => v.id !== id);
+        this.edges = this.edges.filter((e: IEdge) => e.source.id !== id && e.target.id !== id);
+    }
 }
 
 export { IVertex, IEdge, IGraph, Graph };
