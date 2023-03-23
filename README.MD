@@ -87,11 +87,13 @@ const edgeData: IEdge[] = [
 ];
 
 // Step 4. create the graph utility object
-const graph: IGraphManipulation = graphUtils(new Graph(vertData, edgeData));
+const GraphUtils: IGraphManipulation = graphUtils(
+  new Graph(vertData, edgeData)
+);
 
 // Step 5. Do stuff!
 // get the total degree
-const totalDegree = graph.graphUtils.getTotalDegree();
+const totalDegree = GraphUtils.getTotalDegree();
 
 console.log(totalDegree); // 12
 ```
