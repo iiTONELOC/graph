@@ -1,7 +1,7 @@
 import { IGraph, IEdge, IVertex, Graph } from '../Graph';
-import { IGraphManipulation, IAdjacencyList, GraphType, WalkType, EulerTypes } from './interfaces';
+import { IGraphManipulation, IAdjacencyList, GraphType } from './interfaces';
 
-// istanbul ignore file
+
 /**
  * A class that contains all the graph manipulation functions
  * @class
@@ -73,6 +73,7 @@ class Utils implements IGraphManipulation {
         const edge = this.graph.getEdges()
             .find((e: IEdge) => (e.source.id === vertex1 && e.target.id === vertex2)
                 || (e.source.id === vertex2 && e.target.id === vertex1));
+        // istanbul ignore next
         return edge?.id || '';
     }
 
@@ -80,6 +81,7 @@ class Utils implements IGraphManipulation {
         // a bridge is an edge that if removed, would disconnect the graph
         // we can determine this by checking if the graph is connected before and after removing the edge
         const edge = this.graph.getEdge(edgeId);
+        // istanbul ignore next
         if (!edge) {
             return false;
         }
@@ -103,8 +105,9 @@ class Utils implements IGraphManipulation {
 
     // ___ End Edge Manipulation Functions ___
 
-    // ___ Graph Manipulation Functions ___
 
+
+    // ___ Graph Manipulation Functions ___
 
     getTotalDegree(): number {
         return this.graph.getEdges().length * 2;
@@ -144,7 +147,6 @@ class Utils implements IGraphManipulation {
 
         return list;
     }
-
 
     isSubgraph(graph: IGraph): boolean {
         const vertices = this.graph.getVertices();
@@ -377,6 +379,8 @@ class Utils implements IGraphManipulation {
 
     // __ End of Graph Manipulation Functions __
 
+
+
     // ___ Walk Analysis Functions ___
 
     isValidWalk(walk: string[]): boolean {
@@ -418,9 +422,11 @@ class Utils implements IGraphManipulation {
         // create a unique set of the traversed edges
         const uniqueTraversedEdges = [...new Set(traversedEdges)];
 
-        // If an edge comes back undefined, immediately return false because the vertices are not adjacent
-        // if the length differs between the sets then there were duplicates edges in the walk
-        return traversedEdges.includes(undefined) ? false : uniqueTraversedEdges.length === traversedEdges.length;
+        // If an edge comes back undefined, immediately return false because the
+        // vertices are not adjacent if the length differs between the sets then
+        //  there were duplicates edges in the walk
+        return traversedEdges.includes(undefined) ? false
+            : uniqueTraversedEdges.length === traversedEdges.length;
     }
 
     hasNonRepeatingVertices(walk: string[]): boolean {
@@ -500,11 +506,13 @@ class Utils implements IGraphManipulation {
     isEulerTrail(walk: string[]): boolean {
         // is trail that traverses every edge in the graph exactly once
         // the graph must be connected
+        // istanbul ignore next
         if (!this.isConnected()) {
             return false;
         }
 
         // a trail by definition must be an open walk with no repeated edges
+        // istanbul ignore next
         if (!this.isTrail(walk)) {
             return false;
         }
@@ -515,6 +523,7 @@ class Utils implements IGraphManipulation {
         const lastVertex = this.graph.getVertex(walk[walk.length - 1]);
 
         // shouldn't happen because the walk is valid, but prevents returning undefined
+        // istanbul ignore next
         if (!firstVertex || !lastVertex) {
             return false;
         }
@@ -539,16 +548,19 @@ class Utils implements IGraphManipulation {
             .filter((v: IVertex) => this.getDegree(v.id) % 2 !== 0);
 
         if (oddDegreeVertices.length > 0) {
+            // istanbul ignore next
             return false;
         }
 
         // contains every edge in the graph exactly once
         // the graph must be connected
+        // istanbul ignore next
         if (!this.isConnected()) {
             return false;
         }
 
         // a circuit by definition must be a closed walk with no repeated edges
+        // istanbul ignore next
         if (!this.isCircuit(walk)) {
             return false;
         }
@@ -560,15 +572,17 @@ class Utils implements IGraphManipulation {
         const verticesInGraph = new Set(this.graph.getVertices().map((v: IVertex) => v.id));
 
         for (const vertex of verticesInGraph) {
+            // istanbul ignore next
             if (!verticesInWalk.has(vertex)) {
                 return false;
             }
         }
+
         return true;
     }
 
 
-    getEulerCircuitOrPath(): string[] | undefined { //NOSONAR
+    getEulerCircuitOrPath(vertexId?: string): string[] | undefined { //NOSONAR
 
         // create a copy of the graph so we can modify it
         const graphCopy = graphUtils(new Graph(this.graph.getVertices(), this.graph.getEdges()));
@@ -578,6 +592,7 @@ class Utils implements IGraphManipulation {
 
         // if we don't have an even number of odd degree vertices
         // or the graph is not connected we can't have an euler circuit
+        // istanbul ignore next
         if (oddDegreeVertices.length > 2 || !this.isConnected()) {
             return undefined;
         }
@@ -590,7 +605,7 @@ class Utils implements IGraphManipulation {
         const walk: string[] = [];
 
         // tracks the current vertex
-        let currentVertexId = startingVertex.id;
+        let currentVertexId = vertexId || startingVertex.id;
         // tracks the degree of the current vertex
         let currentDegree = this.getDegree(currentVertexId);
 
@@ -618,7 +633,7 @@ class Utils implements IGraphManipulation {
                 // find a neighbor that is not a bridge
                 let neighbor = neighbors[0];
                 let edgeToRemove = graphCopy.getEdgeId(currentVertexId, neighbor);
-
+                // istanbul ignore next
                 edgeToRemove && (() => {
                     // ensure the edge is not a bridge
                     const neighborsCopy = [...neighbors];
@@ -632,6 +647,7 @@ class Utils implements IGraphManipulation {
                 // // remove the edge
                 graphCopy.graph.removeEdge(edgeToRemove);
                 walk.push(currentVertexId);
+                // istanbul ignore next
                 currentVertexId = edgeToRemove ? neighbor : '-1';
             } else {
                 // if there are no neighbors
@@ -643,14 +659,59 @@ class Utils implements IGraphManipulation {
         }
         return walk;
     }
+
+    isHamiltonianCycle(walk: string[]): boolean {
+        // a cycle by definition must be a closed walk with no repeated edges
+
+        // istanbul ignore next
+        if (!this.isCycle(walk)) {
+            return false;
+        }
+
+        // ensure that we have every vertex in the walk
+        // create a set of the vertices by looping through the walk
+        const verticesInWalk = new Set(walk);
+        // create a set of the vertices in the graph
+        const verticesInGraph = new Set(this.graph.getVertices().map((v: IVertex) => v.id));
+
+        for (const vertex of verticesInGraph) {
+            // istanbul ignore next
+            if (!verticesInWalk.has(vertex)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    isHamiltonianPath(walk: string[]): boolean {
+        // istanbul ignore next
+        if (!this.isPath(walk)) {
+            return false;
+        }
+
+        // ensure that we have every vertex in the walk
+        // create a set of the vertices by looping through the walk
+        const verticesInWalk = new Set(walk);
+        // create a set of the vertices in the graph
+        const verticesInGraph = new Set(this.graph.getVertices().map((v: IVertex) => v.id));
+
+        for (const vertex of verticesInGraph) {
+            // istanbul ignore next
+            if (!verticesInWalk.has(vertex)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 
 /**
  * Creates a utility object for manipulating a graph
  * @param graph The graph to manipulate
- * @returns An object containing all the graph manipulation functions, which organized into
- * vertexUtils, edgeUtils, and graphUtils.
+ * @returns An object containing all the graph manipulation functions
  * @example This example shows how to create a basic graph and then use the graph manipulation
  * functions to see if the graph is a complete bipartite graph.
  *
@@ -681,20 +742,21 @@ class Utils implements IGraphManipulation {
  *
  *
  * // create the graph utility object
- * const graph : IGraphManipulation = graphUtils(new Graph(vertData, edgeData));
+ * const GraphUtils : IGraphManipulation = graphUtils(new Graph(vertData, edgeData));
  *
  *
  * // check if the graph is a complete bipartite graph
- * const isBipartite: boolean = graph.graphUtils.isCompleteBipartite();
+ * const isBipartite: boolean = GraphUtils.isCompleteBipartite();
  *
  *
  * console.log(isBipartite); // false
  * ```
  */
+// istanbul ignore next
 const graphUtils: (graph: IGraph) => IGraphManipulation = (graph: IGraph) => new Utils(graph);
 
 // export the utils as function
 export default graphUtils;
 
 // export all the interfaces, enums, types, etc.
-export { IGraphManipulation, GraphType, IAdjacencyList, IGraph, WalkType, EulerTypes };
+export { IGraphManipulation, GraphType, IAdjacencyList, IGraph };

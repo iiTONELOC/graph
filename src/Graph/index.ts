@@ -78,6 +78,7 @@ class Graph implements IGraph {
 
     removeVertex(id: string): void {
         this.vertices = this.vertices.filter((v: IVertex) => v.id !== id);
+        // istanbul ignore next
         this.edges = this.edges.filter((e: IEdge) => e.source.id !== id && e.target.id !== id);
     }
 }

@@ -261,7 +261,7 @@ export interface IGraphManipulation {
 
     /**
      * Determines if a walk is an Euler trail
-     * 
+     *
      * An Euler trail is a trail that visits every edge exactly once
      * @param walk An array of vertex ids representing a walk
      * @returns true if the walk is an Euler trail, false otherwise
@@ -282,9 +282,29 @@ export interface IGraphManipulation {
      *
      * Uses Fleury's algorithm to find an Euler circuit or path
      * @see https://slaystudy.com/fleurys-algorithm/ for more information
+     * @param vertexId The id of the vertex to start the Euler circuit or path from. This is an optional parameter,
+     * the algorithm will pick the best vertex to start from if one is not provided. Unless you want to know explicitly
+     * if a path or circuit exists from a specific vertex, you should not provide this parameter
+     *
      * @returns An array of vertex ids representing an Euler circuit or path or undefined if one does not exist
      */
-    getEulerCircuitOrPath(): string[] | undefined;
+    getEulerCircuitOrPath(vertexId?: string): string[] | undefined;
+
+    /**
+     * Determines if a walk is a Hamiltonian Cycle
+     *
+     * A Hamiltonian cycle is a cycle that includes every vertex exactly once
+     * @param walk An array of vertex ids representing a walk
+     */
+    isHamiltonianCycle(walk: string[]): boolean;
+
+    /**
+     * Determines if a walk is a Hamiltonian Path
+     *
+     * A Hamiltonian path is a path that includes every vertex exactly once
+     * @param walk An array of vertex ids representing a walk
+     */
+    isHamiltonianPath(walk: string[]): boolean;
 }
 
 // TO DO: Refactor the GraphType enum to be more descriptive
@@ -296,23 +316,6 @@ export enum GraphType {
     Bipartite = 5,
     Hypercube = 6,
     Other = 7
-}
-
-export enum WalkType {
-    Open = 1,
-    Closed = 2,
-    Invalid = 3,
-    Trail = 4,
-    Circuit = 5,
-    Path = 6,
-    Cycle = 7
-}
-
-export enum EulerTypes {
-    Circuit = 1,
-    Path = 2,
-    Trail = 3,
-    None = 4
 }
 
 export interface IAdjacencyList {

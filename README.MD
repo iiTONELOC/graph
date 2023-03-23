@@ -65,7 +65,7 @@ Suppose you wanted to know the total degree of the following graph:
 
 ```typescript
 // Step 1. required imports
-import { IVertex, IEdge, Graph, graphUtils, IGraphManipulation } from "./Lib";
+import { IVertex, IEdge, Graph, graphUtils, IGraphManipulation } from "./lib";
 
 // Step 2. create an array of objects for the vertices
 const vertData: IVertex[] = [

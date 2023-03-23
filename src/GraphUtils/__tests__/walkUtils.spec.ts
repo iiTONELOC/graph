@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { GraphUtils, eulerTrailGraphUtils, eulerCircuitGraphUtils } from '../graphTestData';
+import { GraphUtils, eulerTrailGraphUtils, eulerCircuitGraphUtils, hypercubeGraphUtils } from '../graphTestData';
 
 const basicGraph = GraphUtils;
 
@@ -92,16 +92,39 @@ describe('WalkUtils', () => {
         expect(eulerCircuitGraphUtils.isEulerCircuit(eulerCircuit)).toBeTruthy();
     });
 
-    it('Should be able to return an Euler circuit', () => {
+    it('Should be able to return an Euler circuit or undefined if one doesn\'t exist', () => {
         expect(eulerCircuitGraphUtils.
             isEulerCircuit(eulerCircuitGraphUtils.getEulerCircuitOrPath() || [])
         ).toBeTruthy();
+
+        // has a trail/path but not a circuit
+        expect(basicGraph.isEulerCircuit(basicGraph.getEulerCircuitOrPath() || [])).toBeFalsy();
+
+        // has neither this is a K3 graph
+        expect(hypercubeGraphUtils.getEulerCircuitOrPath()).toBeUndefined();
     });
 
-    it('Should be able to return an Euler trail', () => {
+    it('Should be able to return an Euler trail or undefined if one doesn\'t exist', () => {
         expect(eulerTrailGraphUtils
             .isEulerTrail(eulerTrailGraphUtils.getEulerCircuitOrPath() || [])
         ).toBeTruthy();
+
+        expect(hypercubeGraphUtils.getEulerCircuitOrPath()).toBeUndefined();
     });
 
+    it('Should be able to determine if a walk is a Hamiltonian Cycle', () => {
+        const hamiltonianCycle: string[] = ['1', '2', '5', '4', '3', '1'];
+        const notHamiltonianCycle: string[] = ['1', '2', '3', '4', '5'];
+
+        expect(basicGraph.isHamiltonianCycle(hamiltonianCycle)).toBeTruthy();
+        expect(basicGraph.isHamiltonianCycle(notHamiltonianCycle)).toBeFalsy();
+    });
+
+    it('Should be able to determine if a walk is a Hamiltonian Path', () => {
+        const hamiltonianPath: string[] = ['1', '2', '5', '4', '3'];
+        const notHamiltonianPath: string[] = ['1', '2', '3', '4'];
+
+        expect(basicGraph.isHamiltonianPath(hamiltonianPath)).toBeTruthy();
+        expect(basicGraph.isHamiltonianPath(notHamiltonianPath)).toBeFalsy();
+    });
 });
