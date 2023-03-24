@@ -122,6 +122,19 @@ const eulerCircuitEdges: IEdge[] = [
     { id: '10', label: 'DB', source: eulerTrailVerts[3], target: eulerTrailVerts[1] }
 ];
 
+const treeVerts: IVertex[] = [
+    { id: '1', label: 'A' },
+    { id: '2', label: 'B' },
+    { id: '3', label: 'C' },
+    { id: '4', label: 'D' },
+];
+
+const treeEdges: IEdge[] = [
+    { id: '1', label: 'AB', source: treeVerts[0], target: treeVerts[1] },
+    { id: '2', label: 'AC', source: treeVerts[0], target: treeVerts[2] },
+    { id: '3', label: 'AD', source: treeVerts[0], target: treeVerts[3] }
+];
+
 export const vertData: IVertex[] = [
     { id: '1', label: 'A' },
     { id: '2', label: 'B' },
@@ -140,6 +153,7 @@ export const edgeData: IEdge[] = [
 ];
 
 export const GraphUtils = graphUtils(new Graph(vertData, edgeData));
+export const treeUtils = graphUtils(new Graph(treeVerts, treeEdges));
 export const bipartGraphUtils = graphUtils(new Graph(bipartVerts, bipartEdges));
 export const cyclicGraphUtils = graphUtils(new Graph(cyclicVerts, cyclicEdges));
 export const completeGraphUtils = graphUtils(new Graph(completeVerts, completeEdges));

@@ -141,6 +141,22 @@ export interface IGraphManipulation {
     isCompleteBipartite(): boolean;
 
     /**
+     * Determines if the graph contains a cycle recursively
+     *
+     * This is useful for determining if the graph is a tree
+     * @returns true if the graph contains a cycle, false otherwise
+     */
+    hasCycles(): boolean;
+
+    /**
+     * Determines if the graph is a tree
+     *
+     * A tree is a connected graph with no cycles
+     * @returns true if the graph is a tree, false otherwise
+     */
+    isTree(): boolean;
+
+    /**
      * Creates an adjacency matrix representation of the graph
      * This is a 2D array where the rows and columns represent the vertices
      * ex. [[0, 1, 1], [1, 0, 1], [1, 1, 0]]
@@ -183,7 +199,6 @@ export interface IGraphManipulation {
      * @returns true if the graph is connected, false otherwise
      */
     isConnected(): boolean;
-
 
     /**
         * Determines if a walk or an array of vertex ids is a valid path
@@ -305,6 +320,14 @@ export interface IGraphManipulation {
      * @param walk An array of vertex ids representing a walk
      */
     isHamiltonianPath(walk: string[]): boolean;
+
+    /**
+     * Generates a Hamiltonian path using a breadth first search
+     *
+     * @param vertexId the optional id of the vertex to start the path from.
+     * If this parameter is not provided, the algorithm will pick the best vertex to start from
+     */
+    generateHamiltonianPath(vertexId?: string): string[] | undefined;
 }
 
 // TO DO: Refactor the GraphType enum to be more descriptive
@@ -315,7 +338,8 @@ export enum GraphType {
     CompleteBipartite = 4,
     Bipartite = 5,
     Hypercube = 6,
-    Other = 7
+    Tree = 7,
+    Other = 8
 }
 
 export interface IAdjacencyList {

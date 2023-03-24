@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import { GraphType, IAdjacencyList, IGraphManipulation } from '../interfaces';
 import {
     vertData, edgeData, GraphUtils, bipartGraphUtils, cyclicGraphUtils,
-    completeGraphUtils, hypercubeGraphUtils
+    completeGraphUtils, hypercubeGraphUtils, treeUtils
 } from '../graphTestData';
 import { default as graph } from '..';
 
@@ -122,10 +122,17 @@ describe('GraphUtils', () => {
         expect(basicGraph.getEdgeBetweenVertices(vertex1, vert5)).toBeUndefined();
     });
 
+    it('Should be able to determine if the graph has cycles', () => {
+        expect(basicGraph.hasCycles()).toBeTruthy();
+        expect(cyclicGraph.hasCycles()).toBeTruthy();
+        expect(completeGraph.hasCycles()).toBeTruthy();
+        expect(hypercubeGraph.hasCycles()).toBeTruthy();
+        expect(bipartiteGraph.hasCycles()).toBeTruthy();
+        expect(treeUtils.hasCycles()).toBeFalsy();
+    });
+
 
     it('Should be able to determine if the graph is connected', () => {
-
-
         const disconnectedGraph: IGraphManipulation = graph(new Graph(
             [vertData[0], vertData[1], vertData[2], vertData[3]],
             [edgeData[0], edgeData[2]]
@@ -133,6 +140,12 @@ describe('GraphUtils', () => {
 
         expect(disconnectedGraph.isConnected()).toBeFalsy();
         expect(basicGraph.isConnected()).toBeTruthy();
+    });
+
+    it('Should be able to determine if the graph is a tree', () => {
+        expect(basicGraph.isTree()).toBeFalsy();
+        expect(treeUtils.isTree()).toBeTruthy();
+        expect(completeGraph.isTree()).toBeFalsy();
     });
 
 });

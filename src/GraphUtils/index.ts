@@ -9,7 +9,7 @@ import { IGraphManipulation, IAdjacencyList, GraphType } from './interfaces';
  * @param {IGraph} graph - The graph to manipulate
  * @returns {IGraphManipulation} - The graph manipulation functions
  */
-class Utils implements IGraphManipulation {
+export class Utils implements IGraphManipulation {
     graph: IGraph;
     constructor(graph: IGraph) {
         this.graph = graph;
@@ -289,6 +289,55 @@ class Utils implements IGraphManipulation {
         return doesNEqualDegree() && doesTwoToTheNMinus1TimesNEqualEdges();
     }
 
+
+    hasCycles(): boolean {
+        const vertices = this.graph.getVertices();
+        const visited: string[] = [];
+
+        const _hasCycles = (vertex: string): boolean => {
+            const parent = visited[visited.length - 1];
+            visited.push(vertex);
+
+            const neighbors = this.getNeighbors(vertex);
+
+            for (const element of neighbors) {
+                const neighbor = element;
+
+                // if the neighbor is the parent, we can skip it
+                if (neighbor === parent) {
+                    continue;
+                }
+
+                // if the neighbor is in the visited list, we have a cycle
+                if (visited.includes(neighbor)) {
+                    return true;
+                }
+
+                // if the neighbor has cycles, we have a cycle
+                if (_hasCycles(neighbor)) {
+                    return true;
+                }
+
+                // if we get here, we can remove the neighbor from the visited list
+                visited.pop();
+            }
+            return false;
+        };
+
+        return _hasCycles(vertices[0].id);
+    }
+
+    isTree(): boolean {
+        // a tree is a connected graph with no cycles
+        const isConnected = this.isConnected();
+
+        if (!isConnected) {
+            return false;
+        } else {
+            return !this.hasCycles();
+        }
+    }
+
     getGraphType(): GraphType[] {
         const graphTypes: GraphType[] = [];
 
@@ -309,6 +358,9 @@ class Utils implements IGraphManipulation {
         }
         if (this.isBipartite()) {
             graphTypes.push(GraphType.Bipartite);
+        }
+        if (this.isTree()) {
+            graphTypes.push(GraphType.Tree);
         }
 
         if (graphTypes.length === 0) {
@@ -705,6 +757,64 @@ class Utils implements IGraphManipulation {
 
         return true;
     }
+
+    breadthFirstSearch(vertexId?: string): string[] {
+        const listToProcess: string[] = [];
+        const processedVertices: string[] = [];
+        const parentMap: Map<string, string> = new Map();
+
+        // add the starting vertex to the output list
+        processedVertices.push(vertexId || this.graph.getVertices()[0].id);
+
+        // add the starting vertex to the back of the list
+        listToProcess.push(vertexId || this.graph.getVertices()[0].id);
+
+        // while the list is not empty
+        while (listToProcess.length > 0) {
+            // remove the vertex from the front of the list
+            const vertex = listToProcess.shift() || '-1';
+
+            // get the neighbors of the vertex
+            const neighbors = this.getNeighbors(vertex);
+
+            // for each neighbor that is not already in the processed vertices
+            for (const neighbor of neighbors) {
+                // istanbul ignore next
+                if (!processedVertices.includes(neighbor)) {
+                    // add the neighbor to the processed vertices
+                    processedVertices.push(neighbor);
+                    // add the neighbor to the back of the list
+                    listToProcess.push(neighbor);
+                    // add the neighbor to the parent map
+                    parentMap.set(neighbor, vertex);
+                }
+            }
+        }
+
+        // create the path
+        const path: string[] = [];
+        let currentVertex = processedVertices[processedVertices.length - 1];
+
+        while (currentVertex !== processedVertices[0]) {
+            path.push(currentVertex);
+            currentVertex = parentMap.get(currentVertex) || '-1';
+        }
+
+        path.push(processedVertices[0]);
+
+        return path.reverse();
+    }
+
+    generateHamiltonianPath(vertexId?: string): string[] | undefined { //NOSONAR
+        const path = this.breadthFirstSearch(vertexId);
+
+        // check that the path is a hamiltonian path
+        if (this.isHamiltonianPath(path)) {
+            return path;
+        }
+
+        return undefined;
+    }
 }
 
 
@@ -755,8 +865,5 @@ class Utils implements IGraphManipulation {
 // istanbul ignore next
 const graphUtils: (graph: IGraph) => IGraphManipulation = (graph: IGraph) => new Utils(graph);
 
-// export the utils as function
-export default graphUtils;
-
 // export all the interfaces, enums, types, etc.
-export { IGraphManipulation, GraphType, IAdjacencyList, IGraph };
+export { graphUtils as default, IGraphManipulation, GraphType, IAdjacencyList, IGraph };
