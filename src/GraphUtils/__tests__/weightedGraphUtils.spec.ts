@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { IEdge, IVertex } from '../../Graph';
+import TreeUtils, { ITreeManipulation } from '../../TreeUtils';
 
 import graphUtils, { IGraph, IGraphManipulation, Graph, randomWeightOptions } from '../index';
 
@@ -109,7 +110,9 @@ describe('Weighted Graph Utils', () => {
 
                 // reset the weight
                 WeightedGraph.assignWeightToEdge(edge.id, 1);
-                expect.assertions(5);
+                // ensure the weight is 1
+                expect(edge.weight).toEqual(1);
+                expect.assertions(6);
             });
 
             expect.assertions(1);
@@ -120,10 +123,10 @@ describe('Weighted Graph Utils', () => {
          */
         describe('The method assignRandomWeightToAllEdges', () => {
             // make a copy of the graph
-            const graphCopy = graphUtils(basicWeightedGraph);
+            const graphCopy = graphUtils(new Graph([...basicWeightedGraph.vertices], [...basicWeightedGraph.edges]));
 
             it('Should be defined', () => {
-                expect(WeightedGraph.assignRandomWeightsToEdges).toBeDefined();
+                expect(graphCopy.assignRandomWeightsToEdges).toBeDefined();
                 expect.assertions(1);
             });
 
@@ -174,7 +177,86 @@ describe('Weighted Graph Utils', () => {
                 });
 
                 expect(hasNegativeWeight).toEqual(true);
+
+                // reset the weights, the copy appears to be mutating the original graph?
+                graphCopy.graph.getEdges().forEach((edge: IEdge) => {
+                    WeightedGraph.assignWeightToEdge(edge.id, 1);
+                });
             });
+        });
+    });
+
+    /**
+  * A weighted graph should be able to use Prim's algorithm to find the minimum spanning tree
+  */
+    describe('A weighted graph should be able to use Prim\'s algorithm to find the minimum spanning tree', () => {
+        it('Should be defined', () => {
+            expect(WeightedGraph.prim).toBeDefined();
+            expect.assertions(1);
+        });
+
+        describe('The returned data', () => {
+            const mst = WeightedGraph.prim();
+            const mstVertices = mst?.vertices;
+            const mstEdges = mst?.edges;
+
+            const MST: ITreeManipulation = TreeUtils(new Graph(mstVertices, mstEdges));
+
+            it('Should be defined', () => {
+                expect(mst).toBeDefined();
+                expect.assertions(1);
+            });
+
+            it('Should be an object', () => {
+                expect(typeof mst).toEqual('object');
+                expect.assertions(1);
+            });
+
+            it('should have a vertices property', () => {
+                expect(mstVertices).toBeDefined();
+                expect(typeof mstVertices).toEqual(typeof WeightedGraph.graph.getVertex('1'));
+                expect.assertions(2);
+            });
+
+            it('should have an edges property', () => {
+                expect(mstEdges).toBeDefined();
+                expect(typeof mstEdges).toEqual(typeof WeightedGraph.graph.getEdges());
+                expect.assertions(2);
+            });
+
+            it('Should be a subgraph of the original graph', () => {
+                expect(WeightedGraph.isSubgraph(MST.graph)).toEqual(true);
+                expect.assertions(1);
+            });
+
+            it('Should be a tree', () => {
+                expect(MST.isTree()).toEqual(true);
+                expect.assertions(1);
+            });
+
+            it('Should have the correct number of vertices', () => {
+                expect(MST.graph.getVertices().length)
+                    .toEqual(WeightedGraph.graph.getVertices().length);
+                expect.assertions(1);
+            });
+
+            it('Should have the correct number of edges', () => {
+                expect(MST.graph.getEdges().length)
+                    .toEqual(WeightedGraph.graph.getVertices().length - 1);
+                expect.assertions(1);
+            });
+
+            it('Should have the correct total weight', () => {
+                expect(MST.totalWeight()).toEqual(8);
+                expect.assertions(1);
+            });
+
+            it('Should always have a total weight less than the original graph', () => {
+                expect(MST.totalWeight()).toBeLessThan(WeightedGraph.totalWeight());
+                expect.assertions(1);
+            });
+
+
         });
     });
 

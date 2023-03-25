@@ -1,4 +1,5 @@
 import { IGraph, IEdge, IVertex, Graph } from '../Graph';
+import TreeUtils, { ITreeManipulation } from '../TreeUtils';
 import { randomWeight, randomWeightOptions } from '../utils';
 import { IGraphManipulation, IAdjacencyList, GraphType, SearchMethod } from './interfaces';
 
@@ -135,6 +136,14 @@ export class Utils implements IGraphManipulation {
         });
     }
 
+    getEdgeWeight(edgeId: string): number | null {
+        const edge = this.graph.getEdge(edgeId);
+        // istanbul ignore next
+        if (!edge || !edge.weight) {
+            return null;
+        }
+        return edge.weight;
+    }
 
     // ___ End Edge Manipulation Functions ___
 
@@ -906,7 +915,84 @@ export class Utils implements IGraphManipulation {
 
             return undefined;
         }
+    }
 
+    isSpanningTree(path: string[]): boolean {
+        return this.isHamiltonianPath(path);
+    }
+
+    prim(vertexId?: string | undefined): {
+        vertices: IVertex[], edges: IEdge[]
+    } | undefined {
+        // get the starting vertex, if none is provided, select a random vertex
+        const randomIndex = Math.floor(Math.random() * this.graph.getVertices().length);
+        const startVertex = vertexId || this.graph.getVertices()[randomIndex].id;
+
+        // pick any vertex in the graph and add it to the tree
+        const treeVertices: string[] = [startVertex];
+        const treeEdges: string[] = [];
+
+        // create a set of the vertices in the graph
+        const verticesInGraph = new Set(this.graph.getVertices().map((v: IVertex) => v.id));
+
+        // loop over the vertices in the graph
+        for (let i = 0; i < verticesInGraph.size - 1; i++) {
+            // create a set of the vertices in the tree
+            const verticesInTree = new Set(treeVertices);
+
+            // create a set of the edges with one endpoint in the tree and one endpoint not in the tree
+            const edgesInGraph = [...this.graph.getEdges()];
+            const edgesInTree = new Set(edgesInGraph.filter((e: IEdge) => {
+                return (verticesInTree.has(e.source.id) && !verticesInTree.has(e.target.id)) ||
+                    (!verticesInTree.has(e.source.id) && verticesInTree.has(e.target.id));
+            }));
+
+            // get the edge with the minimum weight
+            let minEdge: IEdge | undefined;
+
+
+            for (const edge of edgesInTree) {
+                const weight = edge.weight || 0;
+                const minWeight = minEdge?.weight || 0;
+                // istanbul ignore next
+                if (!minEdge || weight < minWeight) {
+                    minEdge = edge;
+                }
+            }
+
+            // istanbul ignore next
+            if (!minEdge) {
+                return undefined;
+            }
+
+            // add the edge to the tree
+            const foundEdge = this.getEdgeBetweenVertices(minEdge.source, minEdge.target);
+            foundEdge && treeEdges.push(foundEdge.id);
+
+            // add the vertex not in the tree to the tree
+            const vertexToAdd = verticesInTree.has(minEdge.source.id) ? minEdge.target : minEdge.source;
+            treeVertices.push(vertexToAdd.id);
+        }
+
+        const vertexData: IVertex[] = treeVertices.map((v: string) => {
+            const vertex = this.graph.getVertex(v);
+            return vertex ? vertex : { id: v, label: v };
+        });
+
+        const edgeData: IEdge[] = treeEdges.map((e: string) => {
+            const edge = this.graph.getEdge(e);
+            return edge;
+        }).filter((e: IEdge | undefined) => e !== undefined) as IEdge[];
+
+        return {
+            vertices: vertexData,
+            edges: edgeData
+        };
+    }
+
+    totalWeight(): number {
+        return this.graph.getEdges()
+            .reduce((total: number, edge: IEdge) => total + (edge.weight || 0), 0);
     }
 }
 

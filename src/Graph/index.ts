@@ -34,6 +34,12 @@ class Graph implements IGraph {
     constructor(vertices?: IVertex[], edges?: IEdge[]) {
         this.vertices = vertices || [];
         this.edges = edges || [];
+        // loop over the edges and set the weight to zero if it is undefined
+        this.edges.forEach((edge: IEdge) => {
+            if (edge.weight === undefined) {
+                edge.weight = 0;
+            }
+        });
     }
 
 

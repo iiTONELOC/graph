@@ -36,32 +36,21 @@ interface ITreeManipulation extends IGraphManipulation {
 
 
     /**
-     * Determines if the tree is a spanning tree
+     * This method performs a pre-order traversal of the tree
      *
-     * A spanning tree is a sub-tree of a tree that contains all the vertices of the tree
-     * @param path id's of the vertices in the path
-     * @returns true if the path is a spanning tree, false otherwise
+     * @param startVertex the vertex to start the traversal from
+     * @param callback the callback to call for each vertex
      */
-    isSpanningTree(path: string[]): boolean;
+    preOrderTraversal(startVertex: string, callback: (vertex: string) => void): void;
 
     /**
-    * Methods for generating a spanning tree of the graph
-    *
-    *  A spanning tree is a subgraph of the graph that includes all vertices
-    *  and is a tree.
-    *
-    * A tree is a connected graph with no cycles
-    */
-    createSpanningTree(options?: {
-        searchMethod?: SearchMethod;
-        vertexId?: string;
-    }): string[] | undefined;
-
+     * This method performs a post-order traversal of the tree
+     *
+     * @param startVertex the vertex to start the traversal from
+     * @param callback the callback to call for each vertex
+     **/
+    postOrderTraversal(startVertex: string, callback: (vertex: string) => void): void;
 }
 
-export enum SearchMethod {
-    DepthFirst = 1,
-    BreadthFirst = 2
-}
 
 export { ITreeManipulation };

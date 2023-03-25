@@ -1,3 +1,4 @@
+import { ITreeManipulation } from 'TreeUtils';
 import { IGraph, IVertex, IEdge } from '../Graph';
 import type { randomWeightOptions } from '../utils';
 
@@ -112,6 +113,14 @@ export interface IGraphManipulation {
      * @see assignRandomWeightToEdge for more information
      * */
     assignRandomWeightsToEdges(options?: randomWeightOptions): void;
+
+    /**
+     * This method returns the weight of the specified edge
+     *
+     * @param edgeId The id of the edge to get the weight of
+     * @returns The weight of the edge or null if the edge does not exist
+     */
+    getEdgeWeight(edgeId: string): number | null;
 
     // ____ End of edge methods ___
 
@@ -278,6 +287,20 @@ export interface IGraphManipulation {
         vertexId?: string;
     }): string[] | undefined;
 
+    /**
+     * Determines if the tree is a spanning tree
+     *
+     * A spanning tree is a sub-tree of a tree that contains all the vertices of the tree
+     * @param path id's of the vertices in the path
+     * @returns true if the path is a spanning tree, false otherwise
+     */
+    isSpanningTree(path: string[]): boolean;
+
+    /**
+       * This method calculates the totalWeight of the graph
+       * @returns the totalWeight of the graph
+       */
+    totalWeight(): number;
     // ______ End of graph information methods ______
 
     // ______ Walks and paths ______
@@ -410,6 +433,23 @@ export interface IGraphManipulation {
      * If this parameter is not provided, the algorithm will pick the best vertex to start from
      */
     generateHamiltonianPath(vertexId?: string): string[] | undefined;
+
+    /**
+     * Creates a minimum spanning tree of the graph using Prim's algorithm
+     *
+     * @param vertexId The id of the vertex to start the minimum spanning tree from.
+     * This is an optional parameter, if it is not provided, the algorithm will pick the
+     *  best vertex to start from
+     * @returns An object containing the vertices and edges of the minimum spanning tree
+     * or undefined if one does not exist
+     *
+     * The object can be destructured as follows:
+     * ```
+     * const { vertices, edges } = graph.prim();
+     * ```
+     */
+    prim(vertexId?: string): { vertices: IVertex[], edges: IEdge[] } | undefined;
+
 }
 
 // TO DO: Refactor the GraphType enum to be more descriptive

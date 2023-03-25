@@ -57,4 +57,22 @@ describe('TreeUtils', () => {
         expect(pathTestTree.isSpanningTree(spanningTreePath)).toBeTruthy();
         expect(testTree.isSpanningTree(testTreePath)).toBeFalsy();
     });
+
+    it('Should be able to preform a pre-order traversal', () => {
+        const expectedPreOrder: string[] = ['1', '2', '3', '4'];
+        const preOrder: string[] = [];
+
+        pathTestTree.preOrderTraversal('1', (vertex: string) => preOrder.push(vertex));
+
+        expect(preOrder).toEqual(expectedPreOrder);
+    });
+
+    it('Should be able to preform a post-order traversal', () => {
+        const expectedPostOrder: string[] = ['4', '3', '2', '1'];
+        const postOrder: string[] = [];
+
+        pathTestTree.postOrderTraversal('1', (vertex: string) => postOrder.push(vertex));
+
+        expect(postOrder).toEqual(expectedPostOrder);
+    });
 });

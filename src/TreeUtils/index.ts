@@ -1,6 +1,6 @@
 import { Utils as GraphUtils, IGraph } from '../GraphUtils';
 import { ITreeManipulation } from './interfaces';
-import { IVertex } from '../Graph';
+import { IVertex, IEdge } from '../Graph';
 
 class TreeUtils extends GraphUtils implements ITreeManipulation {
 
@@ -41,11 +41,45 @@ class TreeUtils extends GraphUtils implements ITreeManipulation {
         return internalVertices.length === 1;
     }
 
-    isSpanningTree(path: string[]): boolean {
-        return this.isHamiltonianPath(path);
+
+    preOrderTraversal(startVertex: string, callback: (vertex: string) => void): void {
+        const visited = new Set<string>();
+
+        const traverse = (vertex: string) => {
+            visited.add(vertex);
+            callback(vertex);
+
+            const neighbors = this.getNeighbors(vertex);
+
+            neighbors.forEach((neighbor: string) => {
+                if (!visited.has(neighbor)) {
+                    traverse(neighbor);
+                }
+            });
+        };
+
+        traverse(startVertex);
     }
 
+    postOrderTraversal(startVertex: string, callback: (vertex: string) => void): void {
+        const visited = new Set<string>();
 
+        const traverse = (vertex: string) => {
+            visited.add(vertex);
+
+            const neighbors = this.getNeighbors(vertex);
+
+            neighbors.forEach((neighbor: string) => {
+                if (!visited.has(neighbor)) {
+                    traverse(neighbor);
+                }
+            });
+
+            callback(vertex);
+        };
+
+        traverse(startVertex);
+    }
 }
 
 const treeUtils = (graph: IGraph): ITreeManipulation => new TreeUtils(graph);
