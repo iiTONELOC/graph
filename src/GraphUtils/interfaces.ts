@@ -1,10 +1,12 @@
 import { IGraph, IVertex, IEdge } from '../Graph';
+import type { randomWeightOptions } from '../utils';
 
 export interface IGraphManipulation {
 
     graph: IGraph;
 
     // Dealing with individual vertices(nodes) set V
+
     /**
      * Determines if a vertex is isolated on the graph
      * @param vertex The id of the vertex on the graph
@@ -39,6 +41,9 @@ export interface IGraphManipulation {
      * @returns true if they are connected, false otherwise
      */
     areConnected(vertexIds: string[]): boolean;
+    // ____ End of vertex methods ____
+
+    // Dealing with individual edges set E
 
     /**
     * Determines if the graph has self loops
@@ -67,6 +72,49 @@ export interface IGraphManipulation {
      */
     isBridge(edgeId: string): boolean;
 
+    /**
+     * This method assigns a weight to the specified edge
+     *
+     * @param edgeId The id of the edge to assign a weight to
+     * @param weight The weight to assign to the edge
+     */
+    assignWeightToEdge(edgeId: string, weight: number): void;
+
+    /**
+     * This method assigns a random weight to the specified edge
+     * @param edgeId The id of the edge to assign a weight to
+     * @param options The options to use when assigning a random weight
+     * @param options.seed The seed to use when generating the random number
+     * @param options.max The maximum weight to assign to the edge
+     * @param options.min The minimum weight to assign to the edge
+     * @param options.allowNegative Determines if negative weights are allowed
+     * @param options.allowZero Determines if zero weights are allowed
+     * @see randomWeightOptions for optional parameters
+
+     *
+     * When no options are provided, the following defaults are used:
+     * ```json
+     * {
+     *    seed: 0,
+     *    max: 100,
+     *    min: 0,
+     *    allowNegative: false,
+     *    allowZero: false
+     * }
+     * ```
+     */
+    assignRandomWeightToEdge(edgeId: string, options?: randomWeightOptions): void;
+
+    /**
+     * This method assigns a random weight to all edges in the graph
+     * @param options The options to use when assigning a random weight
+     * @see randomWeightOptions for optional parameters
+     * @see assignRandomWeightToEdge for more information
+     * */
+    assignRandomWeightsToEdges(options?: randomWeightOptions): void;
+
+    // ____ End of edge methods ___
+
     // Information regarding the graph as a whole
     /**
      * Determines if the graph is cyclic
@@ -74,7 +122,6 @@ export interface IGraphManipulation {
      * @returns true if the graph is cyclic, false otherwise
      */
     isCyclic(): boolean;
-
 
     /**
      * Determines if the graph is regular
@@ -199,6 +246,41 @@ export interface IGraphManipulation {
      * @returns true if the graph is connected, false otherwise
      */
     isConnected(): boolean;
+
+    /**
+     * Breadth first search
+     *
+     * Builds a tree of vertices that are reachable from the starting vertex
+     * @param vertexId optional id of the vertex to start the search from.
+     * @return An array of vertex ids representing the vertices in the order they were visited
+     */
+    breadthFirstSearch(vertexId?: string): string[];
+
+    /**
+     * Depth first search
+     *
+     * Builds a tree of vertices that are reachable from the starting vertex
+     * @param vertexId optional id of the vertex to start the search from.
+     * @return An array of vertex ids representing the vertices in the order they were visited
+     */
+    depthFirstSearch(vertexId?: string): string[];
+
+    /**
+     * Methods for generating a spanning tree of the graph
+     *
+     *  A spanning tree is a subgraph of the graph that includes all vertices
+     *  and is a tree.
+     *
+     * A tree is a connected graph with no cycles
+     */
+    createSpanningTree(options?: {
+        searchMethod?: SearchMethod;
+        vertexId?: string;
+    }): string[] | undefined;
+
+    // ______ End of graph information methods ______
+
+    // ______ Walks and paths ______
 
     /**
         * Determines if a walk or an array of vertex ids is a valid path
@@ -340,6 +422,11 @@ export enum GraphType {
     Hypercube = 6,
     Tree = 7,
     Other = 8
+}
+
+export enum SearchMethod {
+    DepthFirst = 1,
+    BreadthFirst = 2
 }
 
 export interface IAdjacencyList {

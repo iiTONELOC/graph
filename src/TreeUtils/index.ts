@@ -45,9 +45,7 @@ class TreeUtils extends GraphUtils implements ITreeManipulation {
         return this.isHamiltonianPath(path);
     }
 
-    generateSpanningTree(vertexId?: string): string[] | undefined {
-        return this.generateHamiltonianPath(vertexId);
-    }
+
 }
 
 const treeUtils = (graph: IGraph): ITreeManipulation => new TreeUtils(graph);

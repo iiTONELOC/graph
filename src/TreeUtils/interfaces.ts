@@ -45,12 +45,23 @@ interface ITreeManipulation extends IGraphManipulation {
     isSpanningTree(path: string[]): boolean;
 
     /**
-     * Generates a spanning tree for the given graph
-     * 
-     * @param vertexId an optional vertex to start the spanning tree from
-     * @returns a spanning tree for the given graph
-     */
-    generateSpanningTree(vertexId?: string): string[] | undefined;
+    * Methods for generating a spanning tree of the graph
+    *
+    *  A spanning tree is a subgraph of the graph that includes all vertices
+    *  and is a tree.
+    *
+    * A tree is a connected graph with no cycles
+    */
+    createSpanningTree(options?: {
+        searchMethod?: SearchMethod;
+        vertexId?: string;
+    }): string[] | undefined;
+
+}
+
+export enum SearchMethod {
+    DepthFirst = 1,
+    BreadthFirst = 2
 }
 
 export { ITreeManipulation };

@@ -2,7 +2,6 @@ import { describe, expect, it } from '@jest/globals';
 // import TreeUtils, { ITreeManipulation } from './index';
 import { testTree, starTestTree, pathTestTree } from './treeTestData';
 
-
 describe('TreeUtils', () => {
     it('Should be defined', () => {
         expect(testTree).toBeDefined();
@@ -51,20 +50,11 @@ describe('TreeUtils', () => {
         expect(pathTestTree.isStarTree()).toBeFalsy();
     });
 
-    it('Should be able to determine a path is a spanning tree', () => {
+    it('Should be able to determine if a path is a spanning tree', () => {
         const spanningTreePath: string[] = ['1', '2', '3', '4'];
         const testTreePath: string[] = ['1', '2', '1', '3', '1', '4'];
 
         expect(pathTestTree.isSpanningTree(spanningTreePath)).toBeTruthy();
         expect(testTree.isSpanningTree(testTreePath)).toBeFalsy();
-    });
-
-    it('Should be able to generate a spanning tree', () => {
-        const spanningTree: string[] = ['1', '2', '3', '4'];
-
-        const generatedTree = testTree.generateSpanningTree();
-
-        expect(generatedTree).toBeUndefined();
-        expect(pathTestTree.generateSpanningTree()).toEqual(spanningTree);
     });
 });

@@ -1,15 +1,3 @@
-/**
- * This module contains the types, interfaces, and classes related to a graph.
- */
-
-/**
- * Graphs are made up of a set of vertices V (nodes) and a set of edges E.
- *
- *
- * A vertex is a single element from set V.
- * An edge is a set of two vertices from set V.
- */
-
 interface IVertex {
     id: string;
     label: string;
@@ -20,6 +8,8 @@ interface IEdge {
     label: string;
     source: IVertex;
     target: IVertex;
+    // creates a weighted edge
+    weight?: number;
 }
 
 interface IGraph {

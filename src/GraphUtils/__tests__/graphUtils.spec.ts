@@ -1,11 +1,14 @@
+import { default as graph } from '..';
 import { Graph, IGraph } from '../../Graph';
 import { describe, expect, it } from '@jest/globals';
-import { GraphType, IAdjacencyList, IGraphManipulation } from '../interfaces';
+import { pathTestTree } from '../../TreeUtils/treeTestData';
+import { GraphType, IAdjacencyList, IGraphManipulation, SearchMethod } from '../interfaces';
 import {
     vertData, edgeData, GraphUtils, bipartGraphUtils, cyclicGraphUtils,
-    completeGraphUtils, hypercubeGraphUtils, treeUtils
+    completeGraphUtils, hypercubeGraphUtils, eulerCircuitGraphUtils,
+    eulerTrailGraphUtils, treeUtils
 } from '../graphTestData';
-import { default as graph } from '..';
+
 
 // rename the graphUtils object to something more descriptive for the tests
 const basicGraph = GraphUtils;
@@ -148,4 +151,25 @@ describe('GraphUtils', () => {
         expect(completeGraph.isTree()).toBeFalsy();
     });
 
+
+    describe('Creating a spanning tree', () => {
+
+        it('Should be be able to create a spanning tree by breadth first search', () => {
+            const spanningTree: string[] = ['1', '2', '3', '4'];
+            expect(pathTestTree
+                .createSpanningTree({ searchMethod: SearchMethod.BreadthFirst, vertexId: '1' })
+            ).toEqual(spanningTree);
+        });
+
+        it('Should be be able to create a spanning tree by depth first search', () => {
+
+            expect(basicGraph.createSpanningTree({
+                searchMethod: SearchMethod.DepthFirst,
+            })).toEqual(['2', '1', '3', '4', '5']);
+
+            expect(eulerTrailGraphUtils.createSpanningTree({
+                searchMethod: SearchMethod.DepthFirst
+            })).toBeUndefined();
+        });
+    });
 });

@@ -1,6 +1,6 @@
 import { IGraph, IEdge, IVertex, Graph } from '../Graph';
-import { IGraphManipulation, IAdjacencyList, GraphType } from './interfaces';
-
+import { randomWeight, randomWeightOptions } from '../utils';
+import { IGraphManipulation, IAdjacencyList, GraphType, SearchMethod } from './interfaces';
 
 /**
  * A class that contains all the graph manipulation functions
@@ -45,7 +45,7 @@ export class Utils implements IGraphManipulation {
     }
 
     areConnected(vertexIds: string[]): boolean {
-        for (let i = 0; i < vertexIds.length - 1; i++) {
+        for (let i = 0; i < vertexIds?.length - 1; i++) {
             if (!this.areAdjacent(vertexIds[i], vertexIds[i + 1])) {
                 return false;
             }
@@ -102,6 +102,39 @@ export class Utils implements IGraphManipulation {
 
         return graphConnected && !graphStillConnected;
     }
+
+    assignWeightToEdge(edgeId: string, weight: number): void {
+        const edge = this.graph.getEdge(edgeId);
+        // istanbul ignore next
+        if (!edge) {
+            return;
+        }
+        edge.weight = weight;
+    }
+
+    assignRandomWeightToEdge(edgeId: string, options?: randomWeightOptions): void {
+        const { max, min, allowNegative, allowZero } = options || {};
+
+        const weightProps: randomWeightOptions = {
+            max,
+            min,
+            forceInteger: true,
+            allowZero: allowZero || false,
+            allowNegative: allowNegative || false
+        };
+
+        const randomEdgeWeight = randomWeight(weightProps);
+
+        this.assignWeightToEdge(edgeId, randomEdgeWeight);
+    }
+
+    assignRandomWeightsToEdges(options?: randomWeightOptions): void {
+        const edges = this.graph.getEdges();
+        edges.forEach((e: IEdge) => {
+            this.assignRandomWeightToEdge(e.id, options);
+        });
+    }
+
 
     // ___ End Edge Manipulation Functions ___
 
@@ -429,6 +462,86 @@ export class Utils implements IGraphManipulation {
         return !hasIsolated;
     }
 
+    private _buildPathFromMap(parentMap: Map<string, string>, start: string, end: string): string[] {
+        const path: string[] = [];
+        let current = end;
+
+        while (current !== start) {
+            path.push(current);
+            current = parentMap.get(current) || '';
+        }
+
+        path.push(start);
+        path.reverse();
+        parentMap.clear();
+        return path;
+    }
+
+    breadthFirstSearch(vertexId?: string): string[] {
+        const listToProcess: string[] = [];
+        const processedVertices: string[] = [];
+        const parentMap: Map<string, string> = new Map();
+
+        // add the starting vertex to the output list if it is a valid ID
+        const startingVertex = vertexId || this.graph.getVertices()[0].id;
+        if (this.graph.getVertex(startingVertex)) {
+            processedVertices.push(startingVertex);
+            listToProcess.push(startingVertex);
+        }
+
+        // while the list is not empty
+        while (listToProcess.length > 0) {
+            // remove the vertex from the front of the list, if it is not undefined
+            const vertex = listToProcess.shift();
+            if (vertex === undefined) {
+                continue;
+            }
+
+            // get the neighbors of the vertex
+            const neighbors = this.getNeighbors(vertex);
+
+            // for each neighbor that is not already in the processed vertices
+            for (const neighbor of neighbors) {
+                // istanbul ignore next
+                if (!processedVertices.includes(neighbor)) {
+                    // add the neighbor to the processed vertices
+                    processedVertices.push(neighbor);
+                    // add the neighbor to the back of the list
+                    listToProcess.push(neighbor);
+                    // add the neighbor to the parent map
+                    parentMap.set(neighbor, vertex);
+                }
+            }
+        }
+
+        return this._buildPathFromMap(parentMap, processedVertices[0],
+            processedVertices[processedVertices.length - 1]);
+    }
+
+    depthFirstSearch(vertexId?: string): string[] {
+        const processedVertices: string[] = [];
+        const parentMap: Map<string, string> = new Map();
+
+
+        const visit = (vertex: string): void => {
+            const neighbors = this.getNeighbors(vertex);
+
+            for (const neighbor of neighbors) {
+                if (!processedVertices.includes(neighbor)) {
+                    processedVertices.push(neighbor);
+                    parentMap.set(neighbor, vertex);
+                    visit(neighbor);
+                }
+            }
+        };
+
+        visit(vertexId || this.graph.getVertices()[0].id);
+
+        return this._buildPathFromMap(parentMap, processedVertices[0],
+            processedVertices[processedVertices.length - 1]);
+    }
+
+
     // __ End of Graph Manipulation Functions __
 
 
@@ -438,7 +551,7 @@ export class Utils implements IGraphManipulation {
     isValidWalk(walk: string[]): boolean {
         // the walk must be at least 2 vertices long
         // istanbul ignore next
-        if (walk.length < 2) {
+        if (walk === undefined || walk?.length < 2) {
             return false;
         }
 
@@ -448,23 +561,24 @@ export class Utils implements IGraphManipulation {
     isOpenWalk(walk: string[]): boolean {
         // the walk must be at least 2 vertices long
         // istanbul ignore next
-        if (walk.length < 2) {
+        if (walk === undefined || walk?.length < 2) {
             return false;
         }
 
         // must be a valid walk and the first and last vertices must not be the same
-        return this.isValidWalk(walk) && walk[0] !== walk[walk.length - 1];
+
+        return this.isValidWalk(walk) && walk[0] !== walk[walk?.length - 1];
     }
 
     isClosedWalk(walk: string[]): boolean {
         // the walk must be at least 2 vertices long
         // istanbul ignore next
-        if (walk.length < 2) {
+        if (walk === undefined || walk?.length < 2) {
             return false;
         }
 
         // must be a valid walk and the first and last vertices must be the same
-        return this.isValidWalk(walk) && walk[0] === walk[walk.length - 1];
+        return this.isValidWalk(walk) && walk[0] === walk[walk?.length - 1];
     }
 
     hasNonRepeatingEdges(walk: string[]): boolean {
@@ -635,7 +749,6 @@ export class Utils implements IGraphManipulation {
 
 
     getEulerCircuitOrPath(vertexId?: string): string[] | undefined { //NOSONAR
-
         // create a copy of the graph so we can modify it
         const graphCopy = graphUtils(new Graph(this.graph.getVertices(), this.graph.getEdges()));
 
@@ -742,78 +855,58 @@ export class Utils implements IGraphManipulation {
             return false;
         }
 
-        // ensure that we have every vertex in the walk
-        // create a set of the vertices by looping through the walk
+        // ensure that we have every vertex in the walk and that it was only visited once
+        const graphVertices = this.graph.getVertices().map((v: IVertex) => v.id);
         const verticesInWalk = new Set(walk);
-        // create a set of the vertices in the graph
-        const verticesInGraph = new Set(this.graph.getVertices().map((v: IVertex) => v.id));
 
-        for (const vertex of verticesInGraph) {
+        // loop over the walk and check that each vertex was only visited once
+        for (const vertex of walk) {
             // istanbul ignore next
             if (!verticesInWalk.has(vertex)) {
                 return false;
             }
         }
-
-        return true;
+        return verticesInWalk.size === graphVertices.length;
     }
 
-    breadthFirstSearch(vertexId?: string): string[] {
-        const listToProcess: string[] = [];
-        const processedVertices: string[] = [];
-        const parentMap: Map<string, string> = new Map();
-
-        // add the starting vertex to the output list
-        processedVertices.push(vertexId || this.graph.getVertices()[0].id);
-
-        // add the starting vertex to the back of the list
-        listToProcess.push(vertexId || this.graph.getVertices()[0].id);
-
-        // while the list is not empty
-        while (listToProcess.length > 0) {
-            // remove the vertex from the front of the list
-            const vertex = listToProcess.shift() || '-1';
-
-            // get the neighbors of the vertex
-            const neighbors = this.getNeighbors(vertex);
-
-            // for each neighbor that is not already in the processed vertices
-            for (const neighbor of neighbors) {
-                // istanbul ignore next
-                if (!processedVertices.includes(neighbor)) {
-                    // add the neighbor to the processed vertices
-                    processedVertices.push(neighbor);
-                    // add the neighbor to the back of the list
-                    listToProcess.push(neighbor);
-                    // add the neighbor to the parent map
-                    parentMap.set(neighbor, vertex);
-                }
-            }
-        }
-
-        // create the path
-        const path: string[] = [];
-        let currentVertex = processedVertices[processedVertices.length - 1];
-
-        while (currentVertex !== processedVertices[0]) {
-            path.push(currentVertex);
-            currentVertex = parentMap.get(currentVertex) || '-1';
-        }
-
-        path.push(processedVertices[0]);
-
-        return path.reverse();
-    }
 
     generateHamiltonianPath(vertexId?: string): string[] | undefined { //NOSONAR
+        // maybe we get lucky and a breadth first search is a hamiltonian path
         const path = this.breadthFirstSearch(vertexId);
 
         // check that the path is a hamiltonian path
         if (this.isHamiltonianPath(path)) {
             return path;
+        } else {
+            // try a depth first search
+            const depthFirstPath = this.depthFirstSearch(vertexId);
+            return this.isHamiltonianPath(depthFirstPath) ? depthFirstPath : undefined;
+        }
+    }
+
+    createSpanningTree(options: {
+        searchMethod?: SearchMethod,
+        vertexId?: string,
+    }): string[] | undefined {
+        // Breadth First Search is the default, we can just return the generateHamiltonianPath
+        const { vertexId } = options || {};
+        let { searchMethod } = options || {};
+
+        searchMethod = searchMethod || SearchMethod.BreadthFirst;
+
+        if (searchMethod === SearchMethod.BreadthFirst) {
+            return this.generateHamiltonianPath(vertexId);
+        } else {
+            const searchResult = this.depthFirstSearch(vertexId);
+
+            // check that the path is a hamiltonian path
+            if (this.isHamiltonianPath(searchResult)) {
+                return searchResult;
+            }
+
+            return undefined;
         }
 
-        return undefined;
     }
 }
 
@@ -866,4 +959,4 @@ export class Utils implements IGraphManipulation {
 const graphUtils: (graph: IGraph) => IGraphManipulation = (graph: IGraph) => new Utils(graph);
 
 // export all the interfaces, enums, types, etc.
-export { graphUtils as default, IGraphManipulation, GraphType, IAdjacencyList, IGraph };
+export { graphUtils as default, IGraphManipulation, GraphType, IAdjacencyList, IGraph, Graph, randomWeightOptions };
