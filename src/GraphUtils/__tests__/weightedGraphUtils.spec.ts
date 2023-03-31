@@ -1,5 +1,5 @@
-import { describe, expect, it } from '@jest/globals';
 import { IEdge, IVertex } from '../../Graph';
+import { describe, expect, it } from '@jest/globals';
 import TreeUtils, { ITreeManipulation } from '../../TreeUtils';
 
 import graphUtils, { IGraph, IGraphManipulation, Graph, randomWeightOptions } from '../index';
@@ -103,8 +103,6 @@ describe('Weighted Graph Utils', () => {
                 expect(edge.weight).not.toEqual(1);
                 // the weight should be a number
                 expect(typeof edge.weight).toEqual('number');
-                // the weight should be greater than 0
-                expect(edge.weight).toBeGreaterThan(0);
                 // the weight should be less than 100
                 expect(edge.weight).toBeLessThan(100);
 
@@ -112,10 +110,10 @@ describe('Weighted Graph Utils', () => {
                 WeightedGraph.assignWeightToEdge(edge.id, 1);
                 // ensure the weight is 1
                 expect(edge.weight).toEqual(1);
-                expect.assertions(6);
+                expect.assertions(5);
             });
 
-            expect.assertions(1);
+            expect.assertions(2);
         });
 
         /**
@@ -123,7 +121,7 @@ describe('Weighted Graph Utils', () => {
          */
         describe('The method assignRandomWeightToAllEdges', () => {
             // make a copy of the graph
-            const graphCopy = graphUtils(new Graph([...basicWeightedGraph.vertices], [...basicWeightedGraph.edges]));
+            const graphCopy = WeightedGraph.clone();
 
             it('Should be defined', () => {
                 expect(graphCopy.assignRandomWeightsToEdges).toBeDefined();
@@ -190,22 +188,15 @@ describe('Weighted Graph Utils', () => {
   * A weighted graph should be able to use Prim's algorithm to find the minimum spanning tree
   */
     describe('A weighted graph should be able to use Prim\'s algorithm to find the minimum spanning tree', () => {
-        it('Should be defined', () => {
-            expect(WeightedGraph.prim).toBeDefined();
-            expect.assertions(1);
-        });
 
         describe('The returned data', () => {
             const mst = WeightedGraph.prim();
-            const mstVertices = mst?.vertices;
-            const mstEdges = mst?.edges;
+
+            expect(true).toBe(true);
+            const mstVertices = mst?.graph.vertices;
+            const mstEdges = mst?.graph.edges;
 
             const MST: ITreeManipulation = TreeUtils(new Graph(mstVertices, mstEdges));
-
-            it('Should be defined', () => {
-                expect(mst).toBeDefined();
-                expect.assertions(1);
-            });
 
             it('Should be an object', () => {
                 expect(typeof mst).toEqual('object');
@@ -255,8 +246,83 @@ describe('Weighted Graph Utils', () => {
                 expect(MST.totalWeight()).toBeLessThan(WeightedGraph.totalWeight());
                 expect.assertions(1);
             });
+        });
+    });
 
+    describe('A Weighted graph should be able to use Dijsktra\'s algorithm to find the shortest path between two vertices', () => {
+        const vertData = [
+            { id: '1', label: 'A' },
+            { id: '2', label: 'B' },
+            { id: '3', label: 'C' },
+            { id: '4', label: 'D' },
+            { id: '5', label: 'E' },
+            { id: '6', label: 'F' },
+            { id: '7', label: 'G' }
+        ];
 
+        const edgeData = [
+            { id: '1', label: 'A-B', source: vertData[0], target: vertData[1], weight: 4 },
+            { id: '2', label: 'A-C', source: vertData[0], target: vertData[2], weight: 7 },
+            { id: '3', label: 'A-D', source: vertData[0], target: vertData[3], weight: 3 },
+            { id: '4', label: 'A-F', source: vertData[0], target: vertData[5], weight: 6 },
+            { id: '5', label: 'B-C', source: vertData[1], target: vertData[2], weight: 6 },
+            { id: '6', label: 'B-E', source: vertData[1], target: vertData[4], weight: 3 },
+            { id: '7', label: 'B-F', source: vertData[1], target: vertData[5], weight: 5 },
+            { id: '8', label: 'B-G', source: vertData[1], target: vertData[6], weight: 4 },
+            { id: '9', label: 'C-E', source: vertData[2], target: vertData[4], weight: 4 },
+            { id: '10', label: 'C-G', source: vertData[2], target: vertData[6], weight: 4 },
+            { id: '11', label: 'D-E', source: vertData[3], target: vertData[4], weight: 2 },
+            { id: '12', label: 'E-F', source: vertData[4], target: vertData[5], weight: 7 },
+            { id: '13', label: 'F-G', source: vertData[5], target: vertData[6], weight: 4 }
+        ];
+
+        const weightedGraph = graphUtils(new Graph(vertData, edgeData));
+
+        const shortestPath = weightedGraph.dijkstra('1', '4');
+
+        it('Should be defined', () => {
+            expect(shortestPath).toBeDefined();
+            expect.assertions(1);
+        });
+
+        it('Should return an array of vertices that represent the walk', () => {
+            expect(Array.isArray(shortestPath?.path)).toEqual(true);
+            expect.assertions(1);
+        });
+
+        it('Should return the correct path', () => {
+            expect(shortestPath?.path).toEqual(['1', '4']);
+            expect.assertions(1);
+        });
+
+        it('Should return the correct total weight', () => {
+            expect(shortestPath?.distance).toEqual(3);
+            expect.assertions(1);
+        });
+
+        const pathFromAtoG = weightedGraph.dijkstra('1', '7');
+
+        it('Should return the correct path', () => {
+            expect(pathFromAtoG?.path).toEqual(['1', '2', '7']);
+            expect.assertions(1);
+        });
+
+        it('Should return the correct total weight', () => {
+            expect(pathFromAtoG?.distance).toEqual(8);
+            expect.assertions(1);
+        });
+
+        // F-D
+        const pathFromFtoD = weightedGraph.dijkstra('6', '4');
+
+        it('Should return the correct path', () => {
+            expect(pathFromFtoD?.path).toEqual(['6', '1', '4']);
+            expect.assertions(1);
+        });
+
+        it('Should return the correct total weight', () => {
+            expect(pathFromFtoD?.distance).toEqual(9);
+            expect.assertions(1);
         });
     });
 

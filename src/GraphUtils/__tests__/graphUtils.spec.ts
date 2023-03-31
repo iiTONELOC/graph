@@ -121,7 +121,7 @@ describe('GraphUtils', () => {
         const vertex2 = vertData[1];
 
         const vert5 = vertData[4];
-        expect(basicGraph.getEdgeBetweenVertices(vertex1, vertex2)).toEqual(expectedEdge);
+        expect(basicGraph.getEdgeBetweenVertices(vertex1, vertex2)).toEqual({ ...expectedEdge, weight: 0 });
         expect(basicGraph.getEdgeBetweenVertices(vertex1, vert5)).toBeUndefined();
     });
 
@@ -153,7 +153,6 @@ describe('GraphUtils', () => {
 
 
     describe('Creating a spanning tree', () => {
-
         it('Should be be able to create a spanning tree by breadth first search', () => {
             const spanningTree: string[] = ['1', '2', '3', '4'];
             expect(pathTestTree
@@ -162,14 +161,16 @@ describe('GraphUtils', () => {
         });
 
         it('Should be be able to create a spanning tree by depth first search', () => {
-
-            expect(basicGraph.createSpanningTree({
+            const spt = basicGraph.createSpanningTree({
                 searchMethod: SearchMethod.DepthFirst,
-            })).toEqual(['2', '1', '3', '4', '5']);
-
-            expect(eulerTrailGraphUtils.createSpanningTree({
+                vertexId: '2'
+            });
+            const eSpt = eulerTrailGraphUtils.createSpanningTree({
                 searchMethod: SearchMethod.DepthFirst
-            })).toBeUndefined();
+            });
+
+            expect(basicGraph.isHamiltonianPath(spt || [])).toBeTruthy();
+            expect(eulerTrailGraphUtils.isHamiltonianPath(eSpt || [])).toBeTruthy();
         });
     });
 });

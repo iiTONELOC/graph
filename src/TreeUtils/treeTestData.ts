@@ -1,6 +1,6 @@
+import TreeUtils, { ITreeManipulation } from './';
 import { IEdge, IVertex, Graph } from '../Graph';
 import { treeUtils as testTreeGraphUtils } from '../GraphUtils/graphTestData';
-import TreeUtils, { ITreeManipulation } from './';
 
 const starTreeVertData: IVertex[] = [
     { id: '1', label: 'A' },

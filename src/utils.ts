@@ -78,4 +78,3 @@ export function randomWeight(options?: randomWeightOptions): number {
     // finalize the weight
     return finalizeWeight(_randomWeight);
 }
-

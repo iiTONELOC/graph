@@ -1,6 +1,6 @@
 import { Utils as GraphUtils, IGraph } from '../GraphUtils';
 import { ITreeManipulation } from './interfaces';
-import { IVertex, IEdge } from '../Graph';
+import { IVertex } from '../Graph';
 
 class TreeUtils extends GraphUtils implements ITreeManipulation {
 

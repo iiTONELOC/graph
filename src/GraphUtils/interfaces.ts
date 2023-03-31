@@ -448,7 +448,26 @@ export interface IGraphManipulation {
      * const { vertices, edges } = graph.prim();
      * ```
      */
-    prim(vertexId?: string): { vertices: IVertex[], edges: IEdge[] } | undefined;
+    prim(): IGraphManipulation | undefined;
+
+    /**
+     * Finds the shortest path between two vertices using Dijkstra's algorithm
+     * @param startVertexId The id of the vertex to start the path from
+     * @param endVertexId The id of the vertex to end the path at
+     * @returns An array of vertex ids representing the shortest path between the two vertices
+     * or undefined if one does not exist
+     */
+    dijkstra(startVertexId: string, endVertexId: string): {
+        path: string[];
+        distance: number;
+    } | undefined;
+
+
+    /**
+     * Provides a clone method
+     * @returns A clone of the graph
+     */
+    clone(): IGraphManipulation;
 
 }
 

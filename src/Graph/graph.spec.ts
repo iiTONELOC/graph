@@ -2,11 +2,10 @@ import { describe, expect, it } from '@jest/globals';
 import { IVertex, IEdge, IGraph, Graph } from '../index';
 
 describe('Graph', () => {
-
     const graph: IGraph = new Graph();
     const vertex1: IVertex = { id: '1', label: 'A' };
     const vertex2: IVertex = { id: '2', label: 'B' };
-    const edge: IEdge = { id: '1', label: 'AB', source: vertex1, target: vertex2 };
+    const edge: IEdge = { id: '1', label: 'AB', source: vertex1, target: vertex2, weight: 1 };
 
     it('Should have a set of vertices', () => {
         graph.addVertex(vertex1);

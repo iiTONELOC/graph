@@ -1,5 +1,4 @@
 import { IGraph, IEdge, IVertex, Graph } from '../Graph';
-import TreeUtils, { ITreeManipulation } from '../TreeUtils';
 import { randomWeight, randomWeightOptions } from '../utils';
 import { IGraphManipulation, IAdjacencyList, GraphType, SearchMethod } from './interfaces';
 
@@ -25,11 +24,11 @@ export class Utils implements IGraphManipulation {
         // this means that the edge must contain the current vertex as the source id,
 
         const neighbors: string[] = this.graph.getEdges().map((e: IEdge) => {
-            if (e.source.id === vertex) {
-                return e.target.id;
+            if (e.source?.id === vertex) {
+                return e.target?.id;
             }
-            if (e.target.id === vertex) {
-                return e.source.id;
+            if (e.target?.id === vertex) {
+                return e.source?.id;
             }
             return '-1';
         });
@@ -194,8 +193,13 @@ export class Utils implements IGraphManipulation {
         const vertices = this.graph.getVertices();
         const edges = this.graph.getEdges();
 
-        return graph.getVertices().every((v: IVertex) => vertices.includes(v))
-            && graph.getEdges().every((e: IEdge) => edges.includes(e));
+        const subVertices = graph.getVertices();
+        const subEdges = graph.getEdges();
+
+        const subVerticesInGraph = subVertices.every((v: IVertex) => vertices.some((v2: IVertex) => v.id === v2.id));
+        const subEdgesInGraph = subEdges.every((e: IEdge) => edges.some((e2: IEdge) => e.id === e2.id));
+
+        return subVerticesInGraph && subEdgesInGraph;
     }
 
     isRegular(): boolean {
@@ -471,28 +475,15 @@ export class Utils implements IGraphManipulation {
         return !hasIsolated;
     }
 
-    private _buildPathFromMap(parentMap: Map<string, string>, start: string, end: string): string[] {
-        const path: string[] = [];
-        let current = end;
-
-        while (current !== start) {
-            path.push(current);
-            current = parentMap.get(current) || '';
-        }
-
-        path.push(start);
-        path.reverse();
-        parentMap.clear();
-        return path;
-    }
-
     breadthFirstSearch(vertexId?: string): string[] {
         const listToProcess: string[] = [];
         const processedVertices: string[] = [];
         const parentMap: Map<string, string> = new Map();
 
         // add the starting vertex to the output list if it is a valid ID
-        const startingVertex = vertexId || this.graph.getVertices()[0].id;
+        // random index if no ID is provided
+        const randIndx = Math.floor(Math.random() * this.graph.getVertices().length);
+        const startingVertex = vertexId || this.graph.getVertices()[randIndx].id;
         if (this.graph.getVertex(startingVertex)) {
             processedVertices.push(startingVertex);
             listToProcess.push(startingVertex);
@@ -519,35 +510,51 @@ export class Utils implements IGraphManipulation {
                     listToProcess.push(neighbor);
                     // add the neighbor to the parent map
                     parentMap.set(neighbor, vertex);
+                    // if the neighbor is the end vertex, return the path
                 }
             }
         }
-
-        return this._buildPathFromMap(parentMap, processedVertices[0],
-            processedVertices[processedVertices.length - 1]);
+        return processedVertices;
     }
 
     depthFirstSearch(vertexId?: string): string[] {
-        const processedVertices: string[] = [];
-        const parentMap: Map<string, string> = new Map();
+        const visitedVertices: string[] = [];
+        const stack: string[] = [];
+
+        // add the starting vertex to the output list if it is a valid ID
+        // random index if no ID is provided
+        const randIndx = Math.floor(Math.random() * this.graph.getVertices().length);
+        const startingVertex = vertexId || this.graph.getVertices()[randIndx].id;
 
 
-        const visit = (vertex: string): void => {
-            const neighbors = this.getNeighbors(vertex);
+        if (this.graph.getVertex(startingVertex)) {
+            // add the current vertex to the visited vertices
+            visitedVertices.push(startingVertex);
+            // add the current vertex's neighbors to the stack
+            const neighbors = this.getNeighbors(startingVertex);
+            stack.push(...neighbors);
+        }
 
-            for (const neighbor of neighbors) {
-                if (!processedVertices.includes(neighbor)) {
-                    processedVertices.push(neighbor);
-                    parentMap.set(neighbor, vertex);
-                    visit(neighbor);
-                }
+        // while the stack is not empty
+        while (stack.length > 0 && visitedVertices.length < this.graph.getVertices().length) {
+            // remove the vertex from the front of the stack
+            const vertex = stack.pop();
+            if (vertex === undefined) {
+                continue;
             }
-        };
 
-        visit(vertexId || this.graph.getVertices()[0].id);
+            // if the vertex is not in the visited vertices
+            if (!visitedVertices.includes(vertex)) {
 
-        return this._buildPathFromMap(parentMap, processedVertices[0],
-            processedVertices[processedVertices.length - 1]);
+                // add the vertex to the visited vertices
+                visitedVertices.push(vertex);
+                // add the vertex's neighbors to the stack
+                const neighbors = this.getNeighbors(vertex);
+                // only push the neighbors that are not already in the visited vertices
+                stack.push(...neighbors.filter((n: string) => !visitedVertices.includes(n)));
+            }
+        }
+        return visitedVertices;
     }
 
 
@@ -880,17 +887,9 @@ export class Utils implements IGraphManipulation {
 
 
     generateHamiltonianPath(vertexId?: string): string[] | undefined { //NOSONAR
-        // maybe we get lucky and a breadth first search is a hamiltonian path
-        const path = this.breadthFirstSearch(vertexId);
-
-        // check that the path is a hamiltonian path
-        if (this.isHamiltonianPath(path)) {
-            return path;
-        } else {
-            // try a depth first search
-            const depthFirstPath = this.depthFirstSearch(vertexId);
-            return this.isHamiltonianPath(depthFirstPath) ? depthFirstPath : undefined;
-        }
+        // print the vertices in the graph
+        const vertices = this.createSpanningTree({ vertexId }) || [];
+        return vertices.length > 0 ? vertices : undefined;
     }
 
     createSpanningTree(options: {
@@ -899,31 +898,66 @@ export class Utils implements IGraphManipulation {
     }): string[] | undefined {
         // Breadth First Search is the default, we can just return the generateHamiltonianPath
         const { vertexId } = options || {};
-        let { searchMethod } = options || {};
+        const { searchMethod } = options || { searchMethod: SearchMethod.BreadthFirst };
 
-        searchMethod = searchMethod || SearchMethod.BreadthFirst;
-
-        if (searchMethod === SearchMethod.BreadthFirst) {
-            return this.generateHamiltonianPath(vertexId);
-        } else {
-            const searchResult = this.depthFirstSearch(vertexId);
-
-            // check that the path is a hamiltonian path
-            if (this.isHamiltonianPath(searchResult)) {
-                return searchResult;
-            }
-
+        const hasSolution = this.isConnected();
+        if (!hasSolution) {
             return undefined;
         }
+
+        const triedIds: Set<string> = new Set();
+
+        // add the vertexId to the triedIds
+        vertexId && (() => {
+            triedIds.add(vertexId);
+        })();
+
+        const searchResult = searchMethod === SearchMethod.BreadthFirst ?
+            this.breadthFirstSearch(vertexId) :
+            this.depthFirstSearch(vertexId);
+
+        // check that the path is a hamiltonian path
+
+        const isResultValid = searchResult && this.isHamiltonianPath(searchResult);
+
+        if (isResultValid) {
+            return searchResult;
+        } else if (!isResultValid && hasSolution && triedIds.size < this.graph.getVertices().length) {
+            // if the result is not valid and there is a solution
+            // we need to try a different vertexId
+            const vertices = this.graph.getVertices().map((v: IVertex) => v.id);
+            // loop over the vertices and try a different vertexId
+            for (const vertex of vertices) {
+                // istanbul ignore next
+                if (!triedIds.has(vertex)) {
+                    triedIds.add(vertex);
+                    return this.createSpanningTree({
+                        searchMethod,
+                        vertexId: vertex
+                    });
+                } else {
+                    return undefined;
+                }
+            }
+        } else {
+            return undefined;
+        }
+
+        return searchResult;
     }
 
     isSpanningTree(path: string[]): boolean {
         return this.isHamiltonianPath(path);
     }
 
-    prim(vertexId?: string | undefined): {
-        vertices: IVertex[], edges: IEdge[]
-    } | undefined {
+
+    prim(vertexId?: string | undefined): IGraphManipulation | undefined {
+
+        // if the graph isnt connected, there is no solution
+        const hasSolution = this.isConnected();
+        if (!hasSolution) {
+            return undefined;
+        }
         // get the starting vertex, if none is provided, select a random vertex
         const randomIndex = Math.floor(Math.random() * this.graph.getVertices().length);
         const startVertex = vertexId || this.graph.getVertices()[randomIndex].id;
@@ -940,7 +974,8 @@ export class Utils implements IGraphManipulation {
             // create a set of the vertices in the tree
             const verticesInTree = new Set(treeVertices);
 
-            // create a set of the edges with one endpoint in the tree and one endpoint not in the tree
+            // create a set of the edges with one endpoint in the tree 
+            // and one endpoint not in the tree
             const edgesInGraph = [...this.graph.getEdges()];
             const edgesInTree = new Set(edgesInGraph.filter((e: IEdge) => {
                 return (verticesInTree.has(e.source.id) && !verticesInTree.has(e.target.id)) ||
@@ -949,7 +984,6 @@ export class Utils implements IGraphManipulation {
 
             // get the edge with the minimum weight
             let minEdge: IEdge | undefined;
-
 
             for (const edge of edgesInTree) {
                 const weight = edge.weight || 0;
@@ -974,28 +1008,136 @@ export class Utils implements IGraphManipulation {
             treeVertices.push(vertexToAdd.id);
         }
 
+        // covert the tree vertices and edges to IVertex and IEdge objects
         const vertexData: IVertex[] = treeVertices.map((v: string) => {
             const vertex = this.graph.getVertex(v);
             return vertex ? vertex : { id: v, label: v };
         });
-
         const edgeData: IEdge[] = treeEdges.map((e: string) => {
             const edge = this.graph.getEdge(e);
             return edge;
         }).filter((e: IEdge | undefined) => e !== undefined) as IEdge[];
 
+        const tree = graphUtils(new Graph(vertexData, edgeData));
+        return tree;
+    }
+
+    dijkstra(startVertexId: string, endVertexId: string): {
+        path: string[],
+        distance: number,
+    } | undefined {
+
+        const MAX_DISTANCE = Infinity;
+        // saves the cost of the shortest path to each vertex
+        const distanceMap: { [key: string]: number } = {};
+        // saves the shortest path known so far
+        const previousNodes: { [key: string]: string } = {};
+
+        // create the set of unvisited vertices
+        const unvisited = new Set(this.graph.getVertices().map((v: IVertex) => v.id));
+
+        /**
+         * INITIALIZE THE DISTANCE TO ALL VERTICES TO INFINITY
+         */
+        // set the initial distance to all vertices to infinity
+        for (const vertex of unvisited) {
+            distanceMap[vertex] = MAX_DISTANCE;
+        }
+
+        /**
+         * INITIALIZE THE DISTANCE TO THE STARTING VERTEX TO ZERO
+         */
+        // init the startingVertex to have a distance of zero since has a zero distance to itself
+        distanceMap[startVertexId] = 0;
+
+        /***
+         * WHILE WE HAVEN'T VISITED ALL THE VERTICES
+         */
+        // loopy loop
+        while (unvisited.size > 0) {
+            /**
+             * FIND LO
+             */
+            // Here we find the vertex that makes an edge with the lowest cost
+            // and is still unvisited
+            let minVertex: string | undefined;
+            // find the lowest cost vertex
+            for (const vertex of unvisited) {
+                if (minVertex === undefined) {
+                    minVertex = vertex;
+                }
+                if (distanceMap[vertex] < distanceMap[minVertex]) {
+                    minVertex = vertex;
+                }
+            }
+
+            /**
+             * CONVERT THE INCIDENT VERTEX IDS TO NEIGHBORING EDGES SO WE CAN GET THE WEIGHT
+             */
+
+            // we should have a low cost vertex now
+            // now we need to get the edges that connect to the vertex
+            // and update the distance to the vertex if the edge is lower
+            const neighboringEdges = this.graph.getEdges()
+                .filter((e: IEdge) => e.source.id === minVertex || e.target.id === minVertex);
+
+            /**
+             * UPDATE THE DISTANCE TO THE NEIGHBORS
+             */
+            for (const edge of neighboringEdges) {
+                // get the neighbor
+                const neighbor = edge.source.id === minVertex ? edge.target : edge.source;
+
+                // assign a temporary value to the neighbor's distance
+                const tentativeValue = distanceMap[minVertex as string] + (edge.weight || 0);
+
+                // calculate the distance to the neighbor and see if we have a better path
+                // if the tentative value is less than the current value, then we have a better path
+                if (tentativeValue < distanceMap[neighbor.id]) {
+                    distanceMap[neighbor.id] = tentativeValue;
+                    previousNodes[neighbor.id] = minVertex as string;
+                }
+            }
+
+            // remove the vertex from the unvisited set
+            unvisited.delete(minVertex as string);
+
+            // if we have visited the end vertex, then we can stop
+            if (minVertex === endVertexId) {
+                break;
+            }
+        }
+
+
+        // now we need to find the shortest path from the start to the end
+        const path: string[] = [];
+        let currentVertex = endVertexId;
+
+        while (currentVertex !== startVertexId) {
+            path.push(currentVertex);
+            currentVertex = previousNodes[currentVertex];
+        }
+
+        path.push(startVertexId);
+        path.reverse();
+
         return {
-            vertices: vertexData,
-            edges: edgeData
+            path,
+            distance: distanceMap[endVertexId]
         };
     }
 
     totalWeight(): number {
         return this.graph.getEdges()
-            .reduce((total: number, edge: IEdge) => total + (edge.weight || 0), 0);
+            .reduce((total: number, edge: IEdge) => total + (edge?.weight || 0), 0);
+    }
+
+    clone(): IGraphManipulation {
+        const clone = graphUtils(new Graph());
+        clone.graph = this.graph.clone();
+        return clone;
     }
 }
-
 
 /**
  * Creates a utility object for manipulating a graph

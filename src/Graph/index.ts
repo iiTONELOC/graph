@@ -1,8 +1,24 @@
+
+/**
+ * A vertex is a node in a graph
+ * @interface IVertex
+ * @property {string} id - the id of the vertex
+ * @property {string} label - the label of the vertex
+ */
 interface IVertex {
     id: string;
     label: string;
 }
 
+/**
+ * An edge is a connection between two vertices
+ * @interface IEdge
+ * @property {string} id - the id of the edge
+ * @property {string} label - the label of the edge
+ * @property {IVertex} source - the source vertex
+ * @property {IVertex} target - the target vertex
+ * @property {number} weight - optional the weight of the edg
+ **/
 interface IEdge {
     id: string;
     label: string;
@@ -24,6 +40,7 @@ interface IGraph {
     getEdges(): IEdge[];
     removeEdge(id: string): void;
     removeVertex(id: string): void;
+    clone(): IGraph;
 }
 
 
@@ -35,10 +52,11 @@ class Graph implements IGraph {
         this.vertices = vertices || [];
         this.edges = edges || [];
         // loop over the edges and set the weight to zero if it is undefined
-        this.edges.forEach((edge: IEdge) => {
-            if (edge.weight === undefined) {
-                edge.weight = 0;
+        this.edges = this.edges.map((edge: IEdge) => {
+            if (edge?.weight === undefined) {
+                edge = { ...edge, weight: 0 };
             }
+            return edge;
         });
     }
 
@@ -76,6 +94,12 @@ class Graph implements IGraph {
         this.vertices = this.vertices.filter((v: IVertex) => v.id !== id);
         // istanbul ignore next
         this.edges = this.edges.filter((e: IEdge) => e.source.id !== id && e.target.id !== id);
+    }
+
+    clone(): IGraph {
+        const vertices = this.vertices.map((v: IVertex) => ({ ...v }));
+        const edges = this.edges.map((e: IEdge) => ({ ...e }));
+        return new Graph(vertices, edges);
     }
 }
 
